@@ -20,7 +20,7 @@ class VM {
         if input[0] > 2000 {
             memory = [Int](repeating: 0, count: input[0] + 100)
         }
-        for i in 0..<input.count {
+        for i in 0..<input.count - 2 {
             memory[i] = input[i + 2]
         }
         
@@ -40,6 +40,7 @@ class VM {
     }
     
     func execute() {
+        print(currentInstruction)
         switch currentInstruction {
         case .clrr: print("Nothing yet!")
         case .clrx: print("Nothing yet!")
@@ -128,8 +129,8 @@ class VM {
                 print("Invalid label: \(getParameter(1))")
                 exit(0)
             }
-            if cmprIsEqual {
-                currentIndex = memory[labelLocation.1]
+            if cmprIsEqual == false {
+                currentIndex = labelLocation.1
             } else {
                 currentIndex += 2
             }
