@@ -4,18 +4,18 @@ class VM {
     
     var memory = [Int](repeating: 0, count: 2000)
     var registers = [Int](repeating: 0, count: 10)
-    var labels = [Int: (String, Int)]()
     
     var currentIndex : Int
     var currentInstruction : Instruction
-    var cmprIsEqual = false
+    var lastCmpr = 0
     
     enum Instruction: Int {
         case halt, clrr, clrx, clrm, clrb, movir, movrr, movrm, movmr, movxr, movar, movb, addir, addrr, addmr, addxr, subir, subrr, submr, subxr, mulir, mulrr, mulmr, mulxr, divir, divrr, divmr, divxr, jmp, sojz, sojnz, aojz, aojnz, cmpir, cmprr, cmpmr, jmpn, jmpz, jmpp, jsr, ret, push, pop, stackc, outci, outcr, outcx, outcb, readi, printi, readc, readln, brk, movrx, movxx, outs, nop, jmpne
     }
     
-    init(input: [Int], labels: [Int: (String, Int)]) {
-        self.labels = labels
+    var textToPrint = ""
+    
+    init(input: [Int]) {
         
         if input[0] > 2000 {
             memory = [Int](repeating: 0, count: input[0] + 100)
@@ -30,30 +30,29 @@ class VM {
     
     func run() {
         while currentInstruction != Instruction.halt {
-            execute()
+            executeInstruction()
             currentInstruction = Instruction(rawValue: memory[currentIndex])!
         }
+        print(textToPrint)
     }
     
     func getParameter(_ parameterNumber: Int) -> Int {
         return memory[currentIndex + parameterNumber]
     }
     
-    func execute() {
-        print(currentInstruction)
+    func executeInstruction() {
         switch currentInstruction {
         case .clrr: print("Nothing yet!")
         case .clrx: print("Nothing yet!")
         case .clrm: print("Nothing yet!")
         case .clrb: print("Nothing yet!")
         case .movir: print("Nothing yet!")
+        case .movrr:
+            registers[getParameter(2)] = registers[getParameter(1)]
+            currentIndex += 3
         case .movrm: print("Nothing yet!")
         case .movmr:
-            guard let labelLocation = labels[getParameter(1)] else {
-                print("Invalid label: \(getParameter(1))")
-                exit(0)
-            }
-            registers[getParameter(2)] = memory[labelLocation.1]
+            registers[getParameter(2)] = memory[getParameter(1)]
             currentIndex += 3
         case .movxr: print("Nothing yet!")
         case .movar: print("Nothing yet!")
@@ -63,7 +62,7 @@ class VM {
             currentIndex += 3
         case .addmr: print("Nothing yet!")
         case .addrr:
-            registers[getParameter(1)] += registers[getParameter(2)]
+            registers[getParameter(2)] += registers[getParameter(1)]
             currentIndex += 3
         case .addxr: print("Nothing yet!")
         case .subir: print("Nothing yet!")
@@ -81,10 +80,7 @@ class VM {
         case .aojnz: print("Nothing yet!")
         case .cmpir: print("Nothing yet!")
         case .cmprr:
-            registers[getParameter(1)] -= registers[getParameter(2)]
-            if registers[getParameter(1)] == 0 {
-                cmprIsEqual = true
-            }
+            lastCmpr = registers[getParameter(1)] - registers[getParameter(2)]
             currentIndex += 3
         case .cmpmr: print("Nothing yet!")
         case .jmpn: print("Nothing yet!")
@@ -98,39 +94,30 @@ class VM {
         case .outci: print("Nothing yet!")
         case .outcx: print("Nothing yet!")
         case .outcr:
-            print(AsciiToChar(registers[getParameter(1)]))
+            textToPrint += String(AsciiToChar(registers[getParameter(1)]))
             currentIndex += 2
         case .outcb: print("Nothing yet!")
         case .readi: print("Nothing yet!")
         case .printi:
-            print(registers[getParameter(1)])
+            textToPrint += String(registers[getParameter(1)])
             currentIndex += 2
         case .readc: print("Nothing yet!")
         case .readln: print("Nothing yet!")
         case .brk: print("Nothing yet!")
         case .movrx: print("Nothing yet!")
-        case .movrr: print("Nothing yet!")
+        case .movxx: print("Nothing yet!")
         case .outs:
-            guard let labelLocation = labels[getParameter(1)] else {
-                print("Invalid label: \(getParameter(1))")
-                exit(0)
+            let stringLength = memory[getParameter(1)]
+            let stringStart = getParameter(1) + 1
+            let stringEnd = stringStart + stringLength
+            for i in stringStart..<stringEnd {
+                textToPrint += String(AsciiToChar(memory[i]))
             }
-            
-            let stringLength = memory[labelLocation.1]
-            var string = ""
-            for i in labelLocation.1 + 1...stringLength {
-                string += String(AsciiToChar(memory[i]))
-            }
-            print(string)
             currentIndex += 2
         case .nop: print("Nothing yet!")
         case .jmpne:
-            guard let labelLocation = labels[getParameter(1)] else {
-                print("Invalid label: \(getParameter(1))")
-                exit(0)
-            }
-            if cmprIsEqual == false {
-                currentIndex = labelLocation.1
+            if lastCmpr != 0 {
+                currentIndex = getParameter(1)
             } else {
                 currentIndex += 2
             }
