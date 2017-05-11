@@ -31,38 +31,67 @@ class VM {
     func run() {
         while currentInstruction != Instruction.halt {
             executeInstruction()
+            print(registers)
             currentInstruction = Instruction(rawValue: memory[currentIndex])!
         }
+        print(registers)
+        print(memory)
         print(textToPrint)
     }
     
-    func getParameter(_ parameterNumber: Int) -> Int {
+    func parameter(_ parameterNumber: Int) -> Int {
         return memory[currentIndex + parameterNumber]
     }
     
     func executeInstruction() {
+        print(currentInstruction)
         switch currentInstruction {
-        case .clrr: print("Nothing yet!")
-        case .clrx: print("Nothing yet!")
-        case .clrm: print("Nothing yet!")
-        case .clrb: print("Nothing yet!")
-        case .movir: print("Nothing yet!")
-        case .movrr:
-            registers[getParameter(2)] = registers[getParameter(1)]
+        case .clrr:
+            registers[parameter(1)] = 0
+            currentIndex += 2
+        case .clrx:
+            memory[registers[parameter(1)]] = 0
+            currentIndex += 2
+        case .clrm:
+            memory[parameter(1)] = 0
+            currentIndex += 2
+        case .clrb:
+            let start = registers[parameter(1)]
+            let count = registers[parameter(2)]
+            for i in start..<start + count {
+            memory[i] = 0
+            }
             currentIndex += 3
-        case .movrm: print("Nothing yet!")
+        case .movir:
+            registers[parameter(2)] = parameter(1)
+            currentIndex += 3
+        case .movrr:
+            registers[parameter(2)] = registers[parameter(1)]
+            currentIndex += 3
+        case .movrm:
+            memory[parameter(2)] = registers[parameter(1)]
+            currentIndex += 3 
         case .movmr:
-            registers[getParameter(2)] = memory[getParameter(1)]
+            registers[parameter(2)] = memory[parameter(1)]
             currentIndex += 3
         case .movxr: print("Nothing yet!")
         case .movar: print("Nothing yet!")
-        case .movb: print("Nothing yet!")
+        case .movb:
+            let source = registers[parameter(1)]
+            let destination = registers[parameter(2)]
+            let count = registers[parameter(3)]
+            for i in 0..<count {
+                memory[destination + i] = memory[source + i]
+            }
+            currentIndex += 4
         case .addir:
-            registers[getParameter(2)] += getParameter(1)
+            registers[parameter(2)] += parameter(1)
             currentIndex += 3
-        case .addmr: print("Nothing yet!")
         case .addrr:
-            registers[getParameter(2)] += registers[getParameter(1)]
+            registers[parameter(2)] += registers[parameter(1)]
+            currentIndex += 3
+        case .addmr:
+            registers[parameter(2)] = memory[parameter(1)]
             currentIndex += 3
         case .addxr: print("Nothing yet!")
         case .subir: print("Nothing yet!")
@@ -80,7 +109,7 @@ class VM {
         case .aojnz: print("Nothing yet!")
         case .cmpir: print("Nothing yet!")
         case .cmprr:
-            lastCmpr = registers[getParameter(1)] - registers[getParameter(2)]
+            lastCmpr = registers[parameter(1)] - registers[parameter(2)]
             currentIndex += 3
         case .cmpmr: print("Nothing yet!")
         case .jmpn: print("Nothing yet!")
@@ -94,12 +123,12 @@ class VM {
         case .outci: print("Nothing yet!")
         case .outcx: print("Nothing yet!")
         case .outcr:
-            textToPrint += String(AsciiToChar(registers[getParameter(1)]))
+            textToPrint += String(AsciiToChar(registers[parameter(1)]))
             currentIndex += 2
         case .outcb: print("Nothing yet!")
         case .readi: print("Nothing yet!")
         case .printi:
-            textToPrint += String(registers[getParameter(1)])
+            textToPrint += String(registers[parameter(1)])
             currentIndex += 2
         case .readc: print("Nothing yet!")
         case .readln: print("Nothing yet!")
@@ -107,8 +136,8 @@ class VM {
         case .movrx: print("Nothing yet!")
         case .movxx: print("Nothing yet!")
         case .outs:
-            let stringLength = memory[getParameter(1)]
-            let stringStart = getParameter(1) + 1
+            let stringLength = memory[parameter(1)]
+            let stringStart = parameter(1) + 1
             let stringEnd = stringStart + stringLength
             for i in stringStart..<stringEnd {
                 textToPrint += String(AsciiToChar(memory[i]))
@@ -117,7 +146,7 @@ class VM {
         case .nop: print("Nothing yet!")
         case .jmpne:
             if lastCmpr != 0 {
-                currentIndex = getParameter(1)
+                currentIndex = parameter(1)
             } else {
                 currentIndex += 2
             }
