@@ -91,17 +91,47 @@ class VM {
             registers[parameter(2)] += registers[parameter(1)]
             currentIndex += 3
         case .addmr:
-            registers[parameter(2)] = memory[parameter(1)]
+            registers[parameter(2)] += memory[parameter(1)]
             currentIndex += 3
-        case .addxr: print("Nothing yet!")
-        case .subir: print("Nothing yet!")
-        case .subrr: print("Nothing yet!")
-        case .submr: print("Nothing yet!")
-        case .mulir: print("Nothing yet!")
-        case .mulxr: print("Nothing yet!")
-        case .divir: print("Nothing yet!")
-        case .divrr: print("Nothing yet!")
-        case .divxr: print("Nothing yet!")
+        case .addxr:
+            registers[parameter(2)] += memory[registers[parameter(1)]]
+            currentIndex += 3
+        case .subir:
+            registers[parameter(2)] -= parameter(1)
+            currentIndex += 3
+        case .subrr:
+            registers[parameter(2)] -= registers[parameter(1)]
+            currentIndex += 3
+        case .submr:
+            registers[parameter(2)] -= memory[parameter(1)]
+            currentIndex += 3
+        case .subxr:
+            registers[parameter(2)] -= memory[registers[parameter(1)]]
+            currentIndex += 3
+        case .mulir:
+            registers[parameter(2)] *= parameter(1)
+            currentIndex += 3
+        case .mulrr:
+            registers[parameter(2)] *= registers[parameter(1)]
+            currentIndex += 3
+        case .mulmr:
+            registers[parameter(2)] *= memory[parameter(1)]
+            currentIndex += 3
+        case .mulxr:
+            registers[parameter(2)] *= memory[registers[parameter(1)]]
+            currentIndex += 3
+        case .divir:
+            registers[parameter(2)] /= parameter(1)
+            currentIndex += 3
+        case .divrr:
+            registers[parameter(2)] /= registers[parameter(1)]
+            currentIndex += 3
+        case .divmr:
+            registers[parameter(2)] /= memory[parameter(1)]
+            currentIndex += 3
+        case .divxr:
+            registers[parameter(2)] /= memory[registers[parameter(1)]]
+            currentIndex += 3
         case .jmp: print("Nothing yet!")
         case .sojz: print("Nothing yet!")
         case .sojnz: print("Nothing yet!")
