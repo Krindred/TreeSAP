@@ -132,16 +132,45 @@ class VM {
         case .divxr:
             registers[parameter(2)] /= memory[registers[parameter(1)]]
             currentIndex += 3
-        case .jmp: print("Nothing yet!")
-        case .sojz: print("Nothing yet!")
-        case .sojnz: print("Nothing yet!")
-        case .aojz: print("Nothing yet!")
-        case .aojnz: print("Nothing yet!")
-        case .cmpir: print("Nothing yet!")
+        case .jmp:
+            currentIndex = parameter(1)
+        case .sojz:
+            registers[parameter(1)] -= 1
+            if registers[parameter(1)] == 0 {
+                currentIndex = parameter(2)
+            } else {
+                currentIndex += 3
+            }
+        case .sojnz:
+            registers[parameter(1)] -= 1
+            if registers[parameter(1)] != 0 {
+                currentIndex = parameter(2)
+            } else {
+                currentIndex += 3
+            }
+        case .aojz:
+            registers[parameter(1)] += 1
+            if registers[parameter(1)] == 0 {
+                currentIndex = parameter(2)
+            } else {
+                currentIndex += 3
+            }
+        case .aojnz:
+            registers[parameter(1)] += 1
+            if registers[parameter(1)] != 0 {
+                currentIndex = parameter(2)
+            } else {
+                currentIndex += 3
+            }
+        case .cmpir:
+            lastCmpr = parameter(1) - registers[parameter(2)]
+            currentIndex += 3
         case .cmprr:
             lastCmpr = registers[parameter(1)] - registers[parameter(2)]
             currentIndex += 3
-        case .cmpmr: print("Nothing yet!")
+        case .cmpmr:
+            lastCmpr = memory[parameter(1)] - registers[parameter(2)]
+            currentIndex += 3
         case .jmpn: print("Nothing yet!")
         case .jmpz: print("Nothing yet!")
         case .jmpp: print("Nothing yet!")
