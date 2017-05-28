@@ -3,11 +3,13 @@ import Foundation
 class VM {
     
     var memory = [Int](repeating: 0, count: 2000)
+    var stack = IntStack(size: 2)
     var registers = [Int](repeating: 0, count: 10)
     
-    var currentIndex : Int
+    var programCounter : Int
     var currentInstruction : Instruction
     var lastCmpr = 0
+    var stackReg = 0
     
     enum Instruction: Int {
         case halt, clrr, clrx, clrm, clrb, movir, movrr, movrm, movmr, movxr, movar, movb, addir, addrr, addmr, addxr, subir, subrr, submr, subxr, mulir, mulrr, mulmr, mulxr, divir, divrr, divmr, divxr, jmp, sojz, sojnz, aojz, aojnz, cmpir, cmprr, cmpmr, jmpn, jmpz, jmpp, jsr, ret, push, pop, stackc, outci, outcr, outcx, outcb, readi, printi, readc, readln, brk, movrx, movxx, outs, nop, jmpne
@@ -24,58 +26,57 @@ class VM {
             memory[i] = input[i + 2]
         }
         
-        currentIndex = input[1]
-        currentInstruction = Instruction(rawValue: memory[currentIndex])!
+        programCounter = input[1]
+        currentInstruction = Instruction(rawValue: memory[programCounter])!
     }
     
     func run() {
         while currentInstruction != Instruction.halt {
             executeInstruction()
-            print(registers)
-            currentInstruction = Instruction(rawValue: memory[currentIndex])!
+            currentInstruction = Instruction(rawValue: memory[programCounter])!
         }
-        print(registers)
-        print(memory)
-        print(textToPrint)
     }
     
     func parameter(_ parameterNumber: Int) -> Int {
-        return memory[currentIndex + parameterNumber]
+        return memory[programCounter + parameterNumber]
     }
     
     func executeInstruction() {
-        print(currentInstruction)
         switch currentInstruction {
         case .clrr:
             registers[parameter(1)] = 0
-            currentIndex += 2
+            programCounter += 2
         case .clrx:
             memory[registers[parameter(1)]] = 0
-            currentIndex += 2
+            programCounter += 2
         case .clrm:
             memory[parameter(1)] = 0
-            currentIndex += 2
+            programCounter += 2
         case .clrb:
             let start = registers[parameter(1)]
             let count = registers[parameter(2)]
             for i in start..<start + count {
             memory[i] = 0
             }
-            currentIndex += 3
+            programCounter += 3
         case .movir:
             registers[parameter(2)] = parameter(1)
-            currentIndex += 3
+            programCounter += 3
         case .movrr:
             registers[parameter(2)] = registers[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .movrm:
             memory[parameter(2)] = registers[parameter(1)]
-            currentIndex += 3 
+            programCounter += 3 
         case .movmr:
             registers[parameter(2)] = memory[parameter(1)]
-            currentIndex += 3
-        case .movxr: print("Nothing yet!")
-        case .movar: print("Nothing yet!")
+            programCounter += 3
+        case .movxr:
+            registers[parameter(2)] = memory[registers[parameter(1)]]
+            programCounter += 3
+        case .movar:
+            registers[parameter(2)] = parameter(1)
+            programCounter += 3
         case .movb:
             let source = registers[parameter(1)]
             let destination = registers[parameter(2)]
@@ -83,117 +84,207 @@ class VM {
             for i in 0..<count {
                 memory[destination + i] = memory[source + i]
             }
-            currentIndex += 4
+            programCounter += 4
         case .addir:
             registers[parameter(2)] += parameter(1)
-            currentIndex += 3
+            programCounter += 3
         case .addrr:
             registers[parameter(2)] += registers[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .addmr:
             registers[parameter(2)] += memory[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .addxr:
             registers[parameter(2)] += memory[registers[parameter(1)]]
-            currentIndex += 3
+            programCounter += 3
         case .subir:
             registers[parameter(2)] -= parameter(1)
-            currentIndex += 3
+            programCounter += 3
         case .subrr:
             registers[parameter(2)] -= registers[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .submr:
             registers[parameter(2)] -= memory[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .subxr:
             registers[parameter(2)] -= memory[registers[parameter(1)]]
-            currentIndex += 3
+            programCounter += 3
         case .mulir:
             registers[parameter(2)] *= parameter(1)
-            currentIndex += 3
+            programCounter += 3
         case .mulrr:
             registers[parameter(2)] *= registers[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .mulmr:
             registers[parameter(2)] *= memory[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .mulxr:
             registers[parameter(2)] *= memory[registers[parameter(1)]]
-            currentIndex += 3
+            programCounter += 3
         case .divir:
             registers[parameter(2)] /= parameter(1)
-            currentIndex += 3
+            programCounter += 3
         case .divrr:
             registers[parameter(2)] /= registers[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .divmr:
             registers[parameter(2)] /= memory[parameter(1)]
-            currentIndex += 3
+            programCounter += 3
         case .divxr:
             registers[parameter(2)] /= memory[registers[parameter(1)]]
-            currentIndex += 3
+            programCounter += 3
         case .jmp:
-            currentIndex = parameter(1)
+            programCounter = parameter(1)
         case .sojz:
             registers[parameter(1)] -= 1
             if registers[parameter(1)] == 0 {
-                currentIndex = parameter(2)
+                programCounter = parameter(2)
             } else {
-                currentIndex += 3
+                programCounter += 3
             }
         case .sojnz:
             registers[parameter(1)] -= 1
             if registers[parameter(1)] != 0 {
-                currentIndex = parameter(2)
+                programCounter = parameter(2)
             } else {
-                currentIndex += 3
+                programCounter += 3
             }
         case .aojz:
             registers[parameter(1)] += 1
             if registers[parameter(1)] == 0 {
-                currentIndex = parameter(2)
+                programCounter = parameter(2)
             } else {
-                currentIndex += 3
+                programCounter += 3
             }
         case .aojnz:
             registers[parameter(1)] += 1
             if registers[parameter(1)] != 0 {
-                currentIndex = parameter(2)
+                programCounter = parameter(2)
             } else {
-                currentIndex += 3
+                programCounter += 3
             }
         case .cmpir:
             lastCmpr = parameter(1) - registers[parameter(2)]
-            currentIndex += 3
+            programCounter += 3
         case .cmprr:
             lastCmpr = registers[parameter(1)] - registers[parameter(2)]
-            currentIndex += 3
+            programCounter += 3
         case .cmpmr:
             lastCmpr = memory[parameter(1)] - registers[parameter(2)]
-            currentIndex += 3
-        case .jmpn: print("Nothing yet!")
-        case .jmpz: print("Nothing yet!")
-        case .jmpp: print("Nothing yet!")
-        case .jsr: print("Nothing yet!")
-        case .ret: print("Nothing yet!")
-        case .push: print("Nothing yet!")
-        case .pop: print("Nothing yet!")
-        case .stackc: print("Nothing yet!")
-        case .outci: print("Nothing yet!")
-        case .outcx: print("Nothing yet!")
+            programCounter += 3
+        case .jmpn:
+            if lastCmpr < 0 {
+                programCounter = parameter(1)
+            } else {
+                programCounter += 2
+            }
+        case .jmpz:
+            if lastCmpr == 0 {
+                programCounter = parameter(1)
+            } else {
+                programCounter += 2
+            }
+        case .jmpp:
+            if lastCmpr > 0 {
+                programCounter = parameter(1)
+            } else {
+                programCounter += 2
+            }
+        case .jsr:
+            guard !stack.isFull() else {
+                stackReg = 1
+                programCounter += 2
+                return
+            }
+            
+            for i in 5...9 {
+                stack.push(registers[i])
+            }
+            stack.push(programCounter + 2)
+            programCounter = parameter(1)
+        case .ret:
+            guard !stack.isEmpty() else {
+                stackReg = 2
+                programCounter += 2
+                return
+            }
+            
+            programCounter = stack.pop()!
+            for i in 0...4 {
+                registers[9 - i] = stack.pop()!
+            }
+        case .push:
+            guard !stack.isFull() else {
+                stackReg = 1
+                programCounter += 2
+                return
+            }
+            
+            stack.push(registers[parameter(1)])
+            programCounter += 2
+        case .pop:
+            guard !stack.isEmpty() else {
+                stackReg = 2
+                programCounter += 2
+                return
+            }
+            
+            registers[parameter(1)] = stack.pop()!
+            programCounter += 2
+        case .stackc:
+            if stack.isFull() {
+                registers[parameter(1)] = 1
+            } else if stack.isEmpty() {
+                registers[parameter(1)] = 2
+            } else {
+                registers[parameter(1)] = 0
+            }
+            programCounter += 2
+        case .outci:
+            print(AsciiToChar(parameter(1)))
+            programCounter += 2
+        case .outcx:
+            print(AsciiToChar(memory[registers[parameter(1)]]))
+            programCounter += 2
         case .outcr:
             textToPrint += String(AsciiToChar(registers[parameter(1)]))
-            currentIndex += 2
-        case .outcb: print("Nothing yet!")
-        case .readi: print("Nothing yet!")
+            programCounter += 2
+        case .outcb:
+            let start = registers[parameter(1)]
+            let count = registers[parameter(2)]
+            for i in start..<start + count {
+                print(AsciiToChar(memory[i]))
+            }
+            programCounter += 3
+        case .readi:
+            let input = Int(readLine()!)
+            if let num = input {
+                registers[parameter(1)] = num
+                programCounter += 2
+            } else {print("Input not valid")}
         case .printi:
             textToPrint += String(registers[parameter(1)])
-            currentIndex += 2
-        case .readc: print("Nothing yet!")
-        case .readln: print("Nothing yet!")
-        case .brk: print("Nothing yet!")
-        case .movrx: print("Nothing yet!")
-        case .movxx: print("Nothing yet!")
+            programCounter += 2
+        case .readc:
+            let input = Character(readLine()!)
+            registers[parameter(1)] = charToAscii(input)
+            programCounter += 2
+        case .readln:
+            let line = Array(readLine()!.characters)
+            let start = parameter(1)
+            for i in 0..<line.count {
+                memory[start + i] = charToAscii(line[i])
+            }
+            registers[parameter(2)] = line.count
+            programCounter += 3
+        case .brk:
+            programCounter += 1
+        case .movrx:
+            memory[registers[parameter(2)]] = registers[parameter(1)]
+            programCounter += 3
+        case .movxx:
+            memory[registers[parameter(2)]] = memory[registers[parameter(1)]]
+            programCounter += 3
         case .outs:
             let stringLength = memory[parameter(1)]
             let stringStart = parameter(1) + 1
@@ -201,13 +292,14 @@ class VM {
             for i in stringStart..<stringEnd {
                 textToPrint += String(AsciiToChar(memory[i]))
             }
-            currentIndex += 2
-        case .nop: print("Nothing yet!")
+            programCounter += 2
+        case .nop:
+            programCounter += 1
         case .jmpne:
             if lastCmpr != 0 {
-                currentIndex = parameter(1)
+                programCounter = parameter(1)
             } else {
-                currentIndex += 2
+                programCounter += 2
             }
         default: print("Instruction not recognized")
         }
