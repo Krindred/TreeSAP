@@ -1,0 +1,99 @@
+import Foundation
+
+class UI {
+    
+    var vm = VM()
+    var path = ""
+    
+    let helpMenu = "SAP Help:\n\tasm <program name> - assemble the specified program\n\trun <program name> - run the specified program\n\tpath <path specification> - set the path for the SAP program directory\n\tinclude final / but not name of file. SAP file must have an extension of .txt\n\tprintlst <program name> - print listing file for the specified program\n\tprintbin <program name> - print binary file for the specified program\n\tprintsym <program name> - print symbol table for the specified program\n\tquit  - terminate SAP program\n\thelp  - print help table\n"
+    
+    init() {
+        run()
+    }
+    
+    func run() {
+        print("Welcome to SAP!")
+        print(helpMenu)
+        print("Enter option...", separator: "", terminator: "")
+        var currentInput = getNewLine()
+        while currentInput[0] != "quit" {
+            executeCommand(currentInput)
+            print("")
+            print("Enter option...", separator: "", terminator: "")
+            currentInput = getNewLine()
+        }
+        print("Shutting down...")
+    }
+    
+    func executeCommand(_ input: [String]) {
+        let command = input[0]
+        switch command {
+        case "asm":
+            print("Assembler coming soon!")
+        case "run":
+            guard input.count == 2 else {
+                print("Illegal run command")
+                return
+            }
+            print("Running program \(input[1])")
+            let file = readTextFile("\(path)\(input[1]).bin").1
+            guard let text = file else {
+                print("Cannot read file \(path)\(input[1]).bin")
+                return
+            }
+            let stringNums = splitStringIntoLines(expression: text)
+            var binaryCode = [Int]()
+            for num in stringNums {
+                binaryCode.append(Int(num)!)
+            }
+            print("")
+            vm.runProgram(binaryCode)
+        case "path":
+            guard input.count == 2 else {
+                print("Illegal path command")
+                return
+            }
+            path = input[1]
+        case "printlst":
+            guard input.count == 2 else {
+                print("Illegal printlst command")
+                return
+            }
+            print("Printing \(path)\(input[1]).lst:")
+            let file = readTextFile("\(path)\(input[1]).lst").1
+            guard let text = file else {
+                print("Cannot read file \(path)\(input[1]).lst")
+                return
+            }
+            print(text)
+        case "printbin":
+            guard input.count == 2 else {
+                print("Illegal printbin command")
+                return
+            }
+            print("Printing \(path)\(input[1]).bin:")
+            let file = readTextFile("\(path)\(input[1]).bin").1
+            guard let text = file else {
+                print("Cannot read file \(path)\(input[1]).bin")
+                return
+            }
+            print(text)
+        case "printsym":
+            guard input.count == 2 else {
+                print("Illegal printsym command")
+                return
+            }
+            print("Printing \(path)\(input[1]).sym:")
+            let file = readTextFile("\(path)\(input[1]).sym").1
+            guard let text = file else {
+                print("Cannot read file \(path)\(input[1]).sym")
+                return
+            }
+            print(text)
+        case "help":
+            print(helpMenu)
+        default: print("No such option as \(command)")
+        }
+    }
+    
+}
